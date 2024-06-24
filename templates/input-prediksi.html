@@ -1,0 +1,128 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <!-- Content -->
+
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Prediksi/</span> Tes Prediksi</h4>
+
+              <!-- Basic Layout & Basic with Icons -->
+              <div class="row">
+                <!-- Basic Layout -->
+                <div class="col-xxl">
+                  <div class="card mb-4">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                      <h5 class="mb-0">Tes Prediksi Churn</h5>
+                      <small class="text-muted float-end">Default label</small>
+                    </div>
+                    <div class="card-body">
+                      <form>
+                        <div class="row mb-3">
+                          <label class="col-sm-2 col-form-label" for="basic-default-name">Name</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="Name" placeholder="Nama Pelanggan" />
+                          </div>
+                        </div>
+                        <div class="row mb-3">
+                          <label class="col-sm-2 col-form-label" for="basic-default-name">Service Types</label>
+                          <div class="col-sm-10">
+                            <select class="form-select" id="Service_types">
+                              <option value="Corporate">Corporate</option>
+                              <option value="Retail">Retail</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="row mb-3">
+                          <label class="col-sm-2 col-form-label" for="basic-default-name">Packet Service</label>
+                          <div class="col-sm-10">
+                            <select class="form-select" id="Packet_service">
+                              <option value="Permana Home">Permana Home</option>
+                              <option value="Permana Link">Permana Link</option>
+                              <option value="Permana Dedicated">Permana Dedicated</option>
+                              <option value="Permana Hosta">Permana Hosta</option>
+                              <option value="Permana Colocation">Permana Colocation</option>
+                              <option value="Permana Metro">Permana Metro</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="row mb-3">
+                          <label class="col-sm-2 col-form-label" for="basic-default-name">Media Transmisi</label>
+                          <div class="col-sm-10">
+                            <select class="form-select" id="Media_transmisi">
+                              <option value="Wireless">Wireless</option>
+                              <option value="Fiber Optic">Fiber Optic</option>
+                              <option value="Ethernet">Ethernet</option>
+                              <option value="Direct Kabel">Direct Kabel</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="row mb-3">
+                          <label class="col-sm-2 col-form-label" for="basic-default-name">Bandwidth</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="Bandwidth" placeholder="Jumlah Bandwidth" />
+                          </div>
+                        </div>
+                        <div class="row mb-3">
+                          <label class="col-sm-2 col-form-label" for="basic-default-name">State</label>
+                          <div class="col-sm-10">
+                            <select class="form-select" id="State">
+                              <option value="Kepulauan Riau">Kepulauan Riau</option>
+                              <option value="DKI Jakarta">DKI Jakarta</option>
+                              <option value="Aceh">Aceh</option>
+                              <option value="Jawa Barat">Jawa Barat</option>
+                              <option value="Jawa Tengah">Jawa Tengah</option>
+                              <option value="Jakarta">Jakarta</option>
+                              <option value="Sumatera Utara">Sumatera Utara</option>
+                              <option value="Riau">Riau</option>
+                              <option value="Banten">Banten</option>
+                              <option value="Jawa Timur">Jawa Timur</option>
+                              <option value="Kalimantan Timur">Kalimantan Timur</option>
+                              <option value="Kalimantan Barat">Kalimantan Barat</option>
+                              <option value="Sulawesi Barat">Sulawesi Barat</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="row mb-3">
+                          <label class="col-sm-2 col-form-label" for="basic-default-name">Partner</label>
+                          <div class="col-sm-10">
+                            <select class="form-select" id="Partner">
+                              <option value="Yes">Yes</option>
+                              <option value="No">No</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="row mb-3">
+                          <label class="col-sm-2 col-form-label" for="basic-default-name">Contract</label>
+                          <div class="col-sm-10">
+                            <select class="form-select" id="Contract">
+                              <option value="Yes">Yes</option>
+                              <option value="No">No</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="row mb-3">
+                          <label class="col-sm-2 col-form-label" for="basic-default-name">Complaint</label>
+                          <div class="col-sm-10">
+                            <select class="form-select" id="Complaint">
+                              <option value="Yes">Yes</option>
+                              <option value="No">No</option>
+                            </select>
+                          </div>
+                        </div>
+                        
+                        <div class="row justify-content-end">
+                          <div class="col-sm-10">
+                            <button type="submit" class="btn btn-primary">Send</button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- / Content -->
+{% endblock %}
