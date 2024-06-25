@@ -10,8 +10,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from flask_bcrypt import Bcrypt
 
-from templates.tes2 import create_hashed_password
-
 app = Flask(__name__)
 app.secret_key= 'your-secret-key'
 
@@ -167,6 +165,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        
         try:
             cur = mysql.connection.cursor()
             cur.execute("SELECT username, nama, password FROM tbl_user WHERE username = %s", (username,))
@@ -174,8 +173,8 @@ def login():
             cur.close()
 
             if user and bcrypt.check_password_hash(user[2], password):
-                session['nama'] = user[1]
-                return redirect(url_for('dashboard'))
+                session['nama'] = user[1]  # Set session jika login sukses
+                return redirect(url_for('dashboard'))  # Arahkan ke dashboard setelah login sukses
             else:
                 flash('ERROR: Username dan Password Anda Salah')
                 return render_template('login.html')
@@ -183,8 +182,9 @@ def login():
         except Exception as e:
             flash('ERROR: terjadi kesalahan')
             return render_template('login.html')
-    
+
     return render_template('login.html')
+
 
 def create_hashed_password(password):
     return bcrypt.generate_password_hash(password).decode('utf-8')
@@ -198,7 +198,7 @@ def insert():
         username = request.form['username']
         password = request.form['password']
         level = request.form['level']
-        
+    
         hashed_password = create_hashed_password(password)
         
         cur = mysql.connection.cursor()
@@ -206,7 +206,7 @@ def insert():
         mysql.connection.commit()
         cur.close()
         return redirect(url_for('user'))
-
+    
 @app.route('/delete/<string:id_data>', methods = ['POST','DELETE'])
 def delateuser(id_data):
     if (request.form['_method'] == 'DELETE'):
@@ -241,19 +241,20 @@ def forgot_pass():
 
 @app.route('/dashboard')
 def dashboard():
-   if 'nama' in session:
+    if 'nama' in session:
         try:
             cur = mysql.connection.cursor()
             cur.execute('SELECT COUNT(*) FROM tbl_testing')
-            uji = cur.fetchone()
+            uji = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
             cur.execute('SELECT COUNT(*) FROM tbl_training')
-            latih = cur.fetchone()
+            latih = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
             cur.close()
-            return render_template('dashboard.html', nama=session['nama'], testing=uji[0], training=latih[0])
+            
+            return render_template('dashboard.html', nama=session['nama'], testing=uji, training=latih)
+        
         except Exception as e:
-            return render_template('login.html')
-        else:
-            return redirect(url_for('login'))
+            return render_template('dashboard.html', nama=session['nama'])
+    return redirect(url_for('login'))
 
 @app.route ('/datatraining', methods = ['GET'])
 def datatraining ():    
