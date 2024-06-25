@@ -93,7 +93,7 @@
                             </tr>
                           </thead>
                           <tbody>
-                            {% for row in tbl_datatraining %}
+                            {% for row in tbl_training %}
                             <tr>
                               <td>{{loop.index}}</td>
                               <td>{{row.1}}</td>
@@ -103,6 +103,9 @@
                               <td>{{ convertPI(row.5) }}</td>
                               <td>{{ convertPI1(row.6) }}</td>
                               <td>{{ convertSI(row.7) }}</td>
+                              <td>{{ convertSI(row.8) }}</td>
+                              <td>{{ convertSI(row.9) }}</td>
+                              <td>{{ convertSI(row.10) }}</td>
                               <td>
                                 <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalHapus{{ loop.index }}">
                                   <i class="bi bi-trash"></i> </button>
@@ -114,7 +117,7 @@
                               <div class="modal-dialog">
                                 <div class="modal-content">
                                   <div class="modal-header">
-                                    <h5 class="modal-title" id="exampleModalLabel">Delete Data Testing</h5>
+                                    <h5 class="modal-title" id="exampleModalLabel">Delete Data Training</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                   </div>
                                   <form action="/deletedatatraining/{{ row.0 }}" method="POST">

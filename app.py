@@ -320,7 +320,7 @@ def deletedatatraining(id_data):
     if (request.form['_method'] == 'DELETE'):
         flash("Delete Data Training Berhasil")
         cur = mysql.connection.cursor()
-        cur.execute("DELETE FROM tbltraining WHERE id_training = %s", (id_data,))
+        cur.execute("DELETE FROM tbl_training WHERE id_training = %s", (id_data,))
         mysql.connection.commit()
         cur.close()
         return redirect (url_for('datatraining'))    
@@ -341,8 +341,8 @@ def history():
     else:
         return render_template('login.html')
 
-@app.route('/deletedatatesting/<string:id_data>', methods = ['POST','DELETE'])
-def delatedatatesting(id_data):
+@app.route('/deletedataprediksi/<string:id_data>', methods = ['POST','DELETE'])
+def delatedataprediksi(id_data):
     if (request.form['_method'] == 'DELETE'):
         flash("Delete Data Testing Berhasil")
         cur = mysql.connection.cursor()
@@ -351,9 +351,16 @@ def delatedatatesting(id_data):
         cur.close()
         return redirect (url_for('history'))
 
-@app.route('/user')
-def employee():
-    return render_template('user.html')
+@app.route ('/user')
+def user ():
+    if 'nama' in session:
+        cur = mysql.connection.cursor()
+        cur.execute ("SELECT * From tbl_user")
+        data =cur.fetchall()
+        cur.close()
+        return render_template('user.html', tbl_users = data, nama=session['nama'] )
+    else:
+        return render_template('login.html')
 
 @app.route('/report')
 def report():
