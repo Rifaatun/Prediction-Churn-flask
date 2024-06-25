@@ -21,7 +21,7 @@
         <small class="text-muted float-end">Default label</small>
       </div>
       <div class="card-body">
-        <form method="POST" action="/training" enctype="multipart/form-data">
+        <form method="POST" action="/datatraining" enctype="multipart/form-data">
           <div class="row mb-3">
             <div class="col-sm-12">
               <div class="input-group">
@@ -73,7 +73,7 @@
                       <div class="card-body">
                         <h5 class="card-title">Data Training</h5>
                         <!-- Table with stripped rows -->
-              
+                        <div class="table-responsive">
                         <table id="myTable" class="table responsive nowrap table-bordered table-striped align-middle"
                           style="width:100%">
                           <thead>
@@ -139,6 +139,7 @@
                             {% endfor %}
                           </tbody>
                         </table>
+                        </div>
                         <!-- End Table with stripped rows -->
                         
                       </div>
