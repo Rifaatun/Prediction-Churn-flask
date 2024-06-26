@@ -9,6 +9,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 import matplotlib.pyplot as plt
 import seaborn as sns
 from flask_bcrypt import Bcrypt
+import logging
 
 app = Flask(__name__)
 app.secret_key= 'your-secret-key'
@@ -180,7 +181,8 @@ def login():
                 return render_template('login.html')
 
         except Exception as e:
-            flash('ERROR: terjadi kesalahan')
+            logging.error(f"An error occurred during login: {e}")
+            flash(f'ERROR: An error occurred ({e})')
             return render_template('login.html')
 
     return render_template('login.html')
