@@ -3,6 +3,20 @@
 <!-- Content wrapper -->
 <div class="content-wrapper">
   <!-- Content -->
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  {% for message in messages %}
+  {% if message.startswith('ERROR:') %}
+  <div class="alert alert-danger alert-dismissible fade show mb-2" role="alert">
+    {% else %}
+    <div class="alert alert-success alert-dismissible fade show mb-2" role="alert">
+      {% endif %}
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
 
   <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="fw-bold py-3 mb-4">
@@ -21,136 +35,132 @@
             <small class="text-muted float-end">Default label</small>
           </div>
           <div class="card-body">
-            <form>
+            <form method="POST" action="{{ url_for('predict') }}"> <!--/prediksi-->
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name"
-                  >Name</label
+                <label class="col-sm-2 col-form-label" for="Nama"
+                  >Nama</label
                 >
                 <div class="col-sm-10">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="Name"
-                    placeholder="Nama Pelanggan"
-                  />
+                  <input type="text" class="form-control" id="Nama" name="Nama" placeholder="Nama Pelanggan" value="{% if 'Nama' in request.form %}{{ request.form['Nama'] }}{% endif %}">
                 </div>
               </div>
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name"
+                <label class="col-sm-2 col-form-label" for="Service_types"
                   >Service Types</label
                 >
                 <div class="col-sm-10">
-                  <select class="form-select" id="Service_types">
-                    <option value="Corporate">Corporate</option>
-                    <option value="Retail">Retail</option>
+                  <select class="form-select" id="Service_types" name="Service_types">
+                    <option value="{% if 'Service_types' in request.form and request.form['Service_types'] == 'Corporate' %} selected {% endif %}">Corporate</option>
+                    <option value="{% if 'Service_types' in request.form and request.form['Service_types'] == 'Retail' %} selected {% endif %}">Retail</option>
                   </select>
                 </div>
               </div>
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name"
+                <label class="col-sm-2 col-form-label" for="Packet_service"
                   >Packet Service</label
                 >
                 <div class="col-sm-10">
-                  <select class="form-select" id="Packet_service">
-                    <option value="Permana Home">Permana Home</option>
-                    <option value="Permana Link">Permana Link</option>
-                    <option value="Permana Dedicated">Permana Dedicated</option>
-                    <option value="Permana Hosta">Permana Hosta</option>
-                    <option value="Permana Colocation">
-                      Permana Colocation
-                    </option>
-                    <option value="Permana Metro">Permana Metro</option>
+                  <select class="form-select" id="Packet_service" name="Packet_service">
+                    <option value=" {% if 'Packet_service' in request.form and request.form['Packet_service'] == 'Permana Home' %} selected {% endif %}">Permana Home</option>
+                    <option value="{% if 'Packet_service' in request.form and request.form['Packet_service'] == 'Permana Link' %} selected {% endif %}">Permana Link</option>
+                    <option value=" {% if 'Packet_service' in request.form and request.form['Packet_service'] == 'Permana Dedicated' %} selected {% endif %}">Permana Dedicated</option>
+                    <option value="{% if 'Packet_service' in request.form and request.form['Packet_service'] == 'Permana Hosta' %} selected {% endif %}">Permana Hosta</option>
+                    <option value=" {% if 'Packet_service' in request.form and request.form['Packet_service'] == 'Permana Colocation' %} selected {% endif %}">Permana Colocation</option>
+                    <option value=" {% if 'Packet_service' in request.form and request.form['Packet_service'] == 'Permana Metro' %} selected {% endif %}">Permana Metro</option>
                   </select>
                 </div>
               </div>
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name"
+                <label class="col-sm-2 col-form-label" for="Media_transmisi"
                   >Media Transmisi</label
                 >
                 <div class="col-sm-10">
-                  <select class="form-select" id="Media_transmisi">
-                    <option value="Wireless">Wireless</option>
-                    <option value="Fiber Optic">Fiber Optic</option>
-                    <option value="Ethernet">Ethernet</option>
-                    <option value="Direct Kabel">Direct Kabel</option>
+                  <select class="form-select" id="Media_transmisi" name="Media_transmisi">
+                    <option value="{% if 'Media_transmisi' in request.form and request.form['Media_transmisi'] == 'Wireless' %} selected {% endif %}">Wireless</option>
+                    <option value="{% if 'Media_transmisi' in request.form and request.form['Media_transmisi'] == 'Fiber Optic' %} selected {% endif %}">Fiber Optic</option>
+                    <option value="{% if 'Media_transmisi' in request.form and request.form['Media_transmisi'] == 'Ethernet' %} selected {% endif %}">Ethernet</option>
+                    <option value="{% if 'Media_transmisi' in request.form and request.form['Media_transmisi'] == 'Direct Kabel' %} selected {% endif %}">Direct Kabel</option>
                   </select>
                 </div>
               </div>
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name"
-                  >Bandwidth</label
-                >
+                <label class="col-sm-2 col-form-label" for="Bandwidth"
+                  >Bandwidth</label>
                 <div class="col-sm-10">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="Bandwidth"
-                    placeholder="Jumlah Bandwidth"
-                  />
+                  <input type="number" class="form-control" id="Bandwidth" name="Bandwidth" placeholder="Jumlah Bandwidth" value="{% if 'Bandwidth' in request.form %}{{ request.form['Bandwidth'] }}{% endif %}">
                 </div>
               </div>
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name"
+                <label class="col-sm-2 col-form-label" for="State"
                   >State</label
                 >
                 <div class="col-sm-10">
-                  <select class="form-select" id="State">
-                    <option value="Kepulauan Riau">Kepulauan Riau</option>
-                    <option value="DKI Jakarta">DKI Jakarta</option>
-                    <option value="Aceh">Aceh</option>
-                    <option value="Jawa Barat">Jawa Barat</option>
-                    <option value="Jawa Tengah">Jawa Tengah</option>
-                    <option value="Jakarta">Jakarta</option>
-                    <option value="Sumatera Utara">Sumatera Utara</option>
-                    <option value="Riau">Riau</option>
-                    <option value="Banten">Banten</option>
-                    <option value="Jawa Timur">Jawa Timur</option>
-                    <option value="Kalimantan Timur">Kalimantan Timur</option>
-                    <option value="Kalimantan Barat">Kalimantan Barat</option>
-                    <option value="Sulawesi Barat">Sulawesi Barat</option>
+                  <select class="form-select" id="State" name="State">
+                    <option value="{% if 'State' in request.form and request.form['State'] == 'Kepulauan Riau' %} selected {% endif %}">Kepulauan Riau</option>
+                    <option value="{% if 'State' in request.form and request.form['State'] == 'DKI Jakarta' %} selected {% endif %}">DKI Jakarta</option>
+                    <option value="{% if 'State' in request.form and request.form['State'] == 'Aceh' %} selected {% endif %}">Aceh</option>
+                    <option value=" {% if 'State' in request.form and request.form['State'] == 'Jawa Barat' %} selected {% endif %}">Jawa Barat</option>
+                    <option value="{% if 'State' in request.form and request.form['State'] == 'Jawa Tengah' %} selected {% endif %}">Jawa Tengah</option>
+                    <option value="{% if 'State' in request.form and request.form['State'] == 'Jakarta' %} selected {% endif %}">Jakarta</option>
+                    <option value=" {% if 'State' in request.form and request.form['State'] == 'Sumatera Utara' %} selected {% endif %}">Sumatera Utara</option>
+                    <option value=" {% if 'State' in request.form and request.form['State'] == 'Riau' %} selected {% endif %}">Riau</option>
+                    <option value=" {% if 'State' in request.form and request.form['State'] == 'Banten' %} selected {% endif %}">Banten</option>
+                    <option value=" {% if 'State' in request.form and request.form['State'] == 'Jawa Timur' %} selected {% endif %}">Jawa Timur</option>
+                    <option value=" {% if 'Kalimantan Timur' in request.form and request.form['State'] == 'Kalimantan Timur' %} selected {% endif %}">Kalimantan Timur</option>
+                    <option value=" {% if 'Kalimantan Barat' in request.form and request.form['State'] == 'Kalimantan Barat' %} selected {% endif %}">Kalimantan Barat</option>
+                    <option value="{% if 'Sulawesi Barat' in request.form and request.form['State'] == 'Sulawesi Barat' %} selected {% endif %}">Sulawesi Barat</option>
                   </select>
                 </div>
               </div>
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name"
+                <label class="col-sm-2 col-form-label" for="Partner"
                   >Partner</label
                 >
                 <div class="col-sm-10">
-                  <select class="form-select" id="Partner">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
+                  <select class="form-select" id="Partner" name="Partner">
+                    <option value="{% if 'Partner' in request.form and request.form['Partner'] == 'Yes' %} selected {% endif %}">Yes</option>
+                    <option value="{% if 'Partner' in request.form and request.form['Partner'] == 'No' %} selected {% endif %}">No</option>
                   </select>
                 </div>
               </div>
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name"
-                  >Contract</label
+                <label class="col-sm-2 col-form-label" for="Type_contract"
+                  >Type_Contract</label
                 >
                 <div class="col-sm-10">
-                  <select class="form-select" id="Contract">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
+                  <select class="form-select" id="Type_contract" name="Type_contract">
+                    <option value=" {% if 'Type_contract' in request.form and request.form['Type_contract'] == 'Monthly' %} selected {% endif %}">Monthly</option>
+                    <option value="{% if 'Type_contract' in request.form and request.form['Type_contract'] == 'Yearly' %} selected {% endif %}">Yearly</option>
                   </select>
                 </div>
               </div>
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name"
+                <label class="col-sm-2 col-form-label" for="Complaint"
                   >Complaint</label
                 >
                 <div class="col-sm-10">
-                  <select class="form-select" id="Complaint">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
+                  <select class="form-select" id="Complaint" name="Complaint">
+                    <option value="{% if 'Complaint' in request.form and request.form['Complaint'] == 'Yes' %} selected {% endif %}">Yes</option>
+                    <option value="{% if 'Complaint' in request.form and request.form['Complaint'] == 'No' %} selected {% endif %}">No</option>
                   </select>
                 </div>
               </div>
 
               <div class="row justify-content-end">
                 <div class="col-sm-10">
-                  <button type="submit" class="btn btn-primary">Send</button>
+                  <input type="submit" class="btn btn-primary" value="Predict">
+                  <!-- <button type="submit" class="btn btn-primary">Send</button> -->
                 </div>
               </div>
             </form>
+            
+          </div>
+          <div
+            class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">Hasil Prediksi Churn Adalah </h5>
+            {% if result %}
+            <h5 class="mb-0">{{ result }}</h5>
+            {% endif %}
           </div>
         </div>
       </div>

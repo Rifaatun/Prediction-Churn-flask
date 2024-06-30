@@ -89,17 +89,6 @@
                 <div data-i18n="Analytics">Dashboard</div>
               </a>
             </li>
-
-           <!-- training -->
-           <li class="menu-header small text-uppercase"><span class="menu-header-text">Training</span></li>
-           <!-- input -->
-           <li class="menu-item">
-            <a class="menu-link {% if request.path == '/train' %} {% else %} collapsed {% endif %}"
-            href="/train"> <!--/datatraining-->
-               <i class="menu-icon tf-icons bx bx-detail"></i>
-               <div data-i18n="Tables">Tes Training</div>
-             </a>
-           </li>
       
             <!-- Prediksi -->
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Prediksi</span></li>
@@ -113,22 +102,10 @@
             </li>
             <!-- Tables -->
             <li class="menu-item">
-              <a class="menu-link {% if request.path == '/history-prediksi' %} {% else %} collapsed {% endif %}"
-            href="/history-prediksi">
+              <a class="menu-link {% if request.path == '/history' %} {% else %} collapsed {% endif %}"
+            href="/history">
                 <i class="menu-icon tf-icons bx bx-table"></i>
                 <div data-i18n="Tables">History Prediksi</div>
-              </a>
-            </li>
-            <li class="menu-item">
-
-              <!-- User -->
-            <li class="menu-header small text-uppercase"><span class="menu-header-text">User</span></li>
-            <!-- input -->
-            <li class="menu-item">
-              <a class="menu-link {% if request.path == '/user' %} {% else %} collapsed {% endif %}"
-            href="/user">
-                <i class="menu-icon tf-icons bx bx-detail"></i>
-                <div data-i18n="Tables">Add User</div>
               </a>
             </li>
             <li class="menu-item">

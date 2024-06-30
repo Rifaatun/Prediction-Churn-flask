@@ -1,249 +1,166 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-import pandas as pd
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_mysqldb import MySQL
-from flask_paginate import Pagination
-from sklearn.preprocessing import StandardScaler
-from tensorflow import keras
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-import matplotlib.pyplot as plt
-import seaborn as sns
+import tensorflow as tf
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import Bidirectional, LSTM, Dense
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+import pickle
 from flask_bcrypt import Bcrypt
-import logging
 
 app = Flask(__name__)
-app.secret_key= 'your-secret-key'
+app.secret_key = 'your_secret_key'
 
-# Initialize Bcrypt
-bcrypt = Bcrypt(app)
-
-#Meghubungkan Mysql
-app.config['MYSQL_HOST'] ='localhost'
+# Konfigurasi MySQL
+app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'prediksi_churn'
+app.config['MYSQL_DB'] = 'prediksi_churn02'
 
 mysql = MySQL(app)
 
-#mapping
-mappingServiceTypes = {
-    'Corporate':1,
-    'Retail':0
-}
-
-mappingPacketService = {
-    'Permana Home':0, 
-    'Permana Link':1, 
-    'Permana Dedicated':2, 
-    'Permana Hosta':3,
-    'Permana Colocation':4, 
-    'Permana Metro':5
-}
-
-mappingMediaTransmisi = {
-    'Wireless':0, 
-    'Fiber Optic':1, 
-    'Ethernet':2, 
-    'Direct Kabel':3
-}
-
-mappingState= {
-    'Kepulauan Riau':0, 
-    'DKI Jakarta':1, 
-    'Aceh':2, 
-    'Jawa Barat':3, 
-    'Jawa Tengah':4,
-    'Jakarta':5, 
-    'Sumatera Utara':6, 
-    'Riau':7, 
-    'Banten':8, 
-    'Jawa Timur':9,
-    'Kalimantan Timur':10, 
-    'Kalimantan Barat':11, 
-    'Sulawesi Selatan':12
-}
-
-mappingPartner = {'Yes':1, 'No':0}
-
-mappingContract = {
-    'Yearly':1, 
-    'Monthly':0
-}
-
-mappingComplaint = {'Yes':1, 'No':0}
-
-mappingChurn = {'Yes':1, 'No':0}
-
-#convert
-def extract_number(string):
+#melatih model
+def train_model(data):
     try:
-        return int(string.split()[0])
-    except (ValueError, AttributeError):
-        return 0
+        # Preprocessing data
+        categorical_columns = ['Service_types', 'Packet_service', 'Media_transmisi', 'State', 'Partner', 'Type_contract', 'Complaint', 'Churn']
+        numerical_columns = ['Bandwidth']
+
+        # Encode categorical data
+        label_encoders = {}
+        for col in categorical_columns:
+            label_encoders[col] = LabelEncoder()
+            data[col] = label_encoders[col].fit_transform(data[col])
+
+        # Convert numerical data to float and normalize
+        scaler = StandardScaler()
+        data[numerical_columns] = scaler.fit_transform(data[numerical_columns].astype(float))
+
+        X = data.drop('Churn', axis=1).values
+        y = data['Churn'].values.ravel()  # Menggunakan ravel() pada y
+
+        # Reshape X for LSTM
+        X = np.reshape(X, (X.shape[0], X.shape[1], 1))
+        
+        # Definisikan model BiLSTM
+        model = Sequential()
+        model.add(Bidirectional(LSTM(64, return_sequences=True), input_shape=(X.shape[1], 1)))
+        model.add(Bidirectional(LSTM(64)))
+        model.add(Dense(1, activation='sigmoid'))
+        
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        
+        # Melatih model
+        print("Starting model training...")
+        model.fit(X, y, epochs=10, batch_size=32)
+        print("Model training completed.")
+        
+        # Simpan model
+        print("Saving model...")
+        model.save('models/bilstm01.h5')
+        print("Model saved successfully.")
+
+        # Save the label encoders
+        with open('models/label_encoders.pkl', 'wb') as f:
+            pickle.dump(label_encoders, f)
     
-def convertServiceTypes(st):
-    role = {
-        0: "Corporate",
-        1: "Retail"
-    }
-    return role.get(st, "unknown")
+        return 'Model trained and saved successfully.'
 
-def convertPacketService(ps):
-    role = {
-        0:"Permana Home", 
-        1:'Permana Link', 
-        2:'Permana Dedicated', 
-        3:'Permana Hosta',
-        4:'Permana Colocation', 
-        5:'Permana Metro'
-    }
-    return role.get(ps, "unknown")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
-def convertMediaTransmisi(mt):
-    role = {
-        0:'Wireless', 
-        1:'Fiber Optic', 
-        2:'Ethernet', 
-        3:'Direct Kabel'
-    }
-    return role.get(mt, "unknown")
+#fungsi predict model
+def predict_model(input_data):
+    try:
+        print("Loading model...")
+        model = load_model('models/bilstm01.h5')
+        print("Model loaded successfully.")
 
-def convertState(stt):
-    role = {
-        0:'Kepulauan Riau', 
-        1:'DKI Jakarta', 
-        2:'Aceh', 
-        3:'Jawa Barat', 
-        4:'Jawa Tengah',
-        5:'Jakarta', 
-        6:'Sumatera Utara', 
-        7:'Riau', 
-        8:'Banten', 
-        9:'Jawa Timur',
-        10:'Kalimantan Timur', 
-        11:'Kalimantan Barat', 
-        12:'Sulawesi Selatan'
-    }
-    return role.get(stt, "unknown")
+        print("Loading label encoders...")
+        with open('models/label_encoders.pkl', 'rb') as f:
+            label_encoders = pickle.load(f)
+        print("Label encoders loaded successfully.")
 
-def convertPartner(pn):
-    role = {
-        0: "No",
-        1: "Yes"
-    }
-    return role.get(pn, "unknown")
+        print("Preprocessing input data...")
+        categorical_columns = ['Service_types', 'Packet_service', 'Media_transmisi', 'State', 'Partner', 'Type_contract', 'Complaint']
+        numerical_columns = ['Bandwidth']
 
-def convertContract(ct):
-    role = {
-        0: "No",
-        1: "Yes"
-    }
-    return role.get(ct, "unknown")
+        # Encode categorical data
+        for col in categorical_columns:
+            if input_data[col] not in label_encoders[col].classes_:
+                # Handle unseen labels
+                input_data[col] = 'unknown'
+                if 'unknown' not in label_encoders[col].classes_:
+                    classes = np.append(label_encoders[col].classes_, 'unknown')
+                    label_encoders[col].classes_ = classes
+            input_data[col] = label_encoders[col].transform([input_data[col]])
 
-def convertComplaint(cp):
-    role = {
-        0: "No",
-        1: "Yes"
-    }
-    return role.get(cp, "unknown")
+        # Convert to DataFrame for easier handling
+        input_df = pd.DataFrame([input_data])
 
-def convertChurn(ch):
-    role = {
-        0: "No",
-        1: "Yes"
-    }
-    return role.get(ch, "unknown")
+        # Convert numerical data to float and normalize
+        scaler = StandardScaler()
+        input_df[numerical_columns] = scaler.fit_transform(input_df[numerical_columns].astype(float))
 
-app.jinja_env.globals.update(convertst=convertServiceTypes,convertps=convertPacketService,convertMT=convertMediaTransmisi,convertstt=convertState,convertpt=convertPartner,convertcp=convertComplaint,convertch=convertChurn)
+        # Ensure all data is float32
+        input_df = input_df.astype('float32')
 
+        # Reshape input_data for LSTM model
+        X = np.array(input_df).reshape(1, input_df.shape[1], 1)
+        print("Input data preprocessed successfully.")
+
+        print("Making prediction...")
+        prediction = model.predict(X)
+        print(f"Prediction: {prediction}")
+
+        result = 'Churn' if prediction[0][0] > 0.5 else 'Not Churn'
+        print(f"Prediction result: {result}")
+
+        return result
+
+    except Exception as e:
+        print(f'Error during prediction: {e}')
+        return None
+
+# Fungsi untuk mendapatkan peran pengguna dari database
+def get_user_role(username):
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT role FROM tbl_user WHERE username = %s", (username,))
+    role = cursor.fetchone()[0]
+    cursor.close()
+    return role
+
+# Fungsi untuk mendapatkan history training
+def get_training_history():
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM tbl_training")
+    history = cursor.fetchall()
+    cursor.close()
+    return history
+
+# Fungsi untuk mendapatkan history prediksi
+def get_prediction_history():
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM tbl_prediksi")
+    history = cursor.fetchall()
+    cursor.close()
+    return history
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        try:
-            cur = mysql.connection.cursor()
-            cur.execute("SELECT username, nama, password FROM tbl_user WHERE username = %s", (username,))
-            user = cur.fetchone()
-            cur.close()
-
-            if user and bcrypt.check_password_hash(user[2], password):
-                session['nama'] = user[1]  # Set session jika login sukses
-                return redirect(url_for('dashboard'))  # Arahkan ke dashboard setelah login sukses
-            else:
-                flash('ERROR: Username dan Password Anda Salah')
-                return render_template('login.html')
-
-        except Exception as e:
-            logging.error(f"An error occurred during login: {e}")
-            flash(f'ERROR: An error occurred ({e})')
-            return render_template('login.html')
-
-    return render_template('login.html')
-
-
-def create_hashed_password(password):
-    return bcrypt.generate_password_hash(password).decode('utf-8')
-
-@app.route('/insert', methods=['POST'])
-def insert():
-    if request.method == "POST":
-        flash("Register Berhasil")
-        nama = request.form['nama']
-        email = request.form['email']
-        username = request.form['username']
-        password = request.form['password']
-        level = request.form['level']
-    
-        hashed_password = create_hashed_password(password)
-        
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO tbl_user (nama, email, username, password, level) VALUES (%s, %s, %s, %s, %s)", (nama, email, username, hashed_password, level))
-        mysql.connection.commit()
-        cur.close()
-        return redirect(url_for('user'))
-    
-@app.route('/delete/<string:id_data>', methods = ['POST','DELETE'])
-def delateuser(id_data):
-    if (request.form['_method'] == 'DELETE'):
-        flash("Delete Data Berhasil")
-        cur = mysql.connection.cursor()
-        cur.execute("DELETE FROM tbl_user WHERE id = %s", (id_data,))
-        mysql.connection.commit()
-        cur.close()
-        return redirect (url_for('user'))
-
-@app.route('/user/reset/<user_id>', methods=['POST', 'PUT'])
-def putUserReset(user_id):
-    password = request.form['password']
-    password2 = request.form['password2']
-    
-    if password == password2:
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        flash("Change Password Berhasil")
-        cur = mysql.connection.cursor()
-        cur.execute("""UPDATE tbl_user SET password = %s WHERE id = %s""", (hashed_password, user_id))
-        mysql.connection.commit()
-        cur.close()
-        return redirect(url_for('user'))
-    else:
-        flash("Password tidak cocok")
-        return redirect(url_for('user'))
-
-#####
-@app.route('/forgot_pass')
-def forgot_pass():
-    return render_template('forgot-password.html')
-
 @app.route('/dashboard')
 def dashboard():
-    if 'nama' in session:
+    if 'username' in session:
+        user_role = get_user_role(session['username'])
+        if user_role == 'admin':
+            return render_template('dashboard.html', username=session['username'], role=user_role)
+        elif user_role == 'pegawai':
+            return render_template('dashboard-user.html', username=session['username'], role=user_role)
+        
         try:
             cur = mysql.connection.cursor()
             cur.execute('SELECT COUNT(*) FROM tbl_testing')
@@ -252,71 +169,112 @@ def dashboard():
             latih = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
             cur.close()
             
-            return render_template('dashboard.html', nama=session['nama'], testing=uji, training=latih)
+            return render_template('dashboard.html', username=session['username'], datatesting=uji, datatraining=latih)
         
         except Exception as e:
-            return render_template('dashboard.html', nama=session['nama'])
+            return render_template('dashboard.html', username=session['username'])
     return redirect(url_for('login'))
 
-@app.route ('/datatraining', methods = ['GET'])
-def datatraining ():    
-    if 'nama' in session:
-        cur = mysql.connection.cursor()
-        cur.execute ("SELECT * From tbl_training")
-        data = cur.fetchall()
-        cur.close()
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
 
-        return render_template('training-prediksi.html', nama=session['nama'], tbl_training = data)
-    else:
-        return render_template('login.html')
+        # Cek login dari database
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT * FROM tbl_user WHERE username = %s AND password = %s", (username, password))
+        user = cursor.fetchone()
+        cursor.close()
         
-@app.route ('/datatraining', methods = ['POST'])
-def inputdatatraining ():
+        if user:
+            session['username'] = username
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Login failed. Please check your username and password.')
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login'))
+
+# Fungsi untuk memeriksa apakah file yang diunggah diizinkan
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'csv'}
+
+@app.route('/train', methods=['GET', 'POST'])
+def train():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    user_role = get_user_role(session['username'])
+    if user_role != 'admin':
+        flash('Akses tidak sah: Hanya admin yang dapat mengakses halaman ini.')
+        return redirect(url_for('dashboard'))
+
     if request.method == 'POST':
         try:
-            data = request.files['file']
-            data = pd.read_csv(data)
+            file = request.files['file']
+            
+            if file.filename == '':
+                flash('Tidak ada file yang dipilih untuk diunggah.')
+                return redirect(url_for('train'))
+            
+            # Periksa apakah file yang diunggah memiliki ekstensi yang diizinkan
+            if file and allowed_file(file.filename):
+                col_name = ['Nama', 'Service_types', 'Packet_service', 'Media_transmisi', 'Bandwidth', 'State', 'Partner', 'Type_contract', 'Complaint', 'Churn']
+                data = pd.read_csv(file, names=col_name, header=0, sep=',', skipinitialspace=True)
+                
+                # Cek dan mengganti nilai nan dengan None
+                data.replace({np.nan: None}, inplace=True)
+                
+                cursor = mysql.connection.cursor()
+                added_rows = 0  # Counter for added rows
+                skipped_rows = 0  # Counter for skipped rows (duplicates)
+                
+                for index, row in data.iterrows():
+                    # Cek apakah data sudah ada di database
+                    cursor.execute("""
+                        SELECT * FROM tbl_training 
+                        WHERE Nama = %s AND Service_types = %s AND Packet_service = %s AND Media_transmisi = %s 
+                        AND Bandwidth = %s AND State = %s AND Partner = %s AND Type_contract = %s AND Complaint = %s AND Churn = %s
+                    """, (row['Nama'], row['Service_types'], row['Packet_service'], row['Media_transmisi'], row['Bandwidth'], row['State'], row['Partner'], row['Type_contract'], row['Complaint'], row['Churn']))
+                    
+                    existing_row = cursor.fetchone()
+                    
+                    if existing_row:
+                        skipped_rows += 1
+                        continue  # Skip this row
+                    
+                    # Simpan data training ke database jika tidak duplikat
+                    cursor.execute("""
+                        INSERT INTO tbl_training 
+                        (Nama, Service_types, Packet_service, Media_transmisi, Bandwidth, State, Partner, Type_contract, Complaint, Churn) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (row['Nama'], row['Service_types'], row['Packet_service'], row['Media_transmisi'], row['Bandwidth'], row['State'], row['Partner'], row['Type_contract'], row['Complaint'], row['Churn']))
+                    added_rows += 1
 
-            # Mengganti nilai string kosong ('') dengan NaN
-            data.replace('', pd.NA, inplace=True)
-            data.replace('-', pd.NA, inplace=True)
-
-            # Menghapus baris dengan nilai kosong atau NaN di salah satu kolom
-            data = data.dropna(how='any')
-
-            data['Nilai Service_types'] = data['Service_types'].replace(mappingServiceTypes)
-            data['Nilai Packet_service'] = data['Packet_service'].replace(mappingPacketService)
-            data['Nilai Media_transmisi'] = data['Media_transmisi'].replace(mappingMediaTransmisi)
-            data['Nilai State'] = data['State'].replace(mappingState)
-            data['Nilai Partner'] = data['Partner'].replace(mappingPartner)
-            data['Nilai Contract'] = data['Contract'].replace(mappingContract)
-            data['Nilai Complaint'] = data['Complaint'].replace(mappingComplaint)
-            data['Nilai Churn'] = data['Complaint'].replace(mappingChurn)
-
-            cur = mysql.connection.cursor()
-            # Iterasi melalui setiap baris DataFrame dan menyimpan data ke database
-            for index, row in data.iterrows():
-                # Menjalankan kueri untuk menyimpan data
-                cur.execute("INSERT INTO tbl_training (nama, service_type, packet_service, media_transmisi, bandwidth, state, partner, contract, complaint, churn) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", 
-                            (
-                                row['Nama Pelanggan'], 
-                                row['Nilai Service_types'], 
-                                row['Nilai Packet_service'], 
-                                row['Nilai Media_tranmisi'], 
-                                row['Nilai State'],
-                                row['Nilai Partner'],
-                                row['Nilai Contract'],
-                                row['Nilai Complaint'],
-                                row['Nilai Churn'],
-                                ))
-            mysql.connection.commit()
-            cur.close()
-            flash("Data Training Berhasil DiUpload")
-            return redirect(url_for('datatraining'))
+                mysql.connection.commit()
+                cursor.close()
+                
+                # Latih model jika ada data baru yang ditambahkan
+                if added_rows > 0:
+                    train_model(data)
+                    flash(f'Data training berhasil diunggah dan model dilatih. {added_rows} baris ditambahkan, {skipped_rows} baris dilewati karena duplikat.')
+                else:
+                    train_model(data)
+                    flash(f'model dilatih.')
+                    flash(f'Tidak ada data baru yang ditambahkan. {skipped_rows} baris dilewati karena duplikat.')
+                return redirect(url_for('train'))
+        
         except Exception as e:
-            flash("ERROR: Terjadi Kesalahan Saat Menambah Data Training")
-            return redirect(url_for('datatraining'))
-   
+            flash(f'Terjadi kesalahan: {str(e)}')
+            return redirect(url_for('train'))
+
+    return render_template('training-prediksi.html')
+
 @app.route('/deletedatatraining/<string:id_data>', methods = ['POST','DELETE'])
 def deletedatatraining(id_data):
     if (request.form['_method'] == 'DELETE'):
@@ -327,31 +285,129 @@ def deletedatatraining(id_data):
         cur.close()
         return redirect (url_for('datatraining'))    
 
-@app.route('/prediksi')
-def prediksi():
-    return render_template('input-prediksi.html')
+
+@app.route('/predict', methods=['GET', 'POST'])
+def predict():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    result = None  # Inisialisasi result dengan None
+
+    if request.method == 'POST':
+        try:
+            # Ambil input dari form
+            input_data = {
+                'Nama': request.form['Nama'],
+                'Service_types': request.form['Service_types'],
+                'Packet_service': request.form['Packet_service'],
+                'Media_transmisi': request.form['Media_transmisi'],
+                'Bandwidth': float(request.form['Bandwidth']),
+                'State': request.form['State'],
+                'Partner': request.form['Partner'],
+                'Type_contract': request.form['Type_contract'],
+                'Complaint': request.form['Complaint']
+            }
+
+            input_data = pd.DataFrame([input_data])
+
+            # Prediksi menggunakan fungsi predict_model
+            result = predict_model(input_data)
+
+            if result is None:
+                flash('Prediksi gagal. Mohon coba lagi.')
+            else:
+                # Simpan hasil prediksi ke database tbl_prediksi
+                cursor = mysql.connection.cursor()
+                cursor.execute("""
+                    INSERT INTO tbl_prediksi 
+                    (Nama, Service_types, Packet_service, Media_transmisi, Bandwidth, State, Partner, Type_contract, Complaint, Prediction) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (request.form['Nama'], input_data['Service_types'], input_data['Packet_service'], input_data['Media_transmisi'], input_data['Bandwidth'], input_data['State'], input_data['Partner'], input_data['Type_contract'], input_data['Complaint'], result))
+                mysql.connection.commit()
+                cursor.close()
+
+        except Exception as e:
+            flash(f'Terjadi kesalahan: {str(e)}')
+
+    return render_template('input-prediksi.html', result=result)
+
+@app.route('/training_history')
+def training_history():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    user_role = get_user_role(session['username'])
+    if user_role != 'admin':
+        flash('Akses tidak sah: Hanya admin yang dapat mengakses halaman ini.')
+        return redirect(url_for('dashboard'))
+
+    #training_history = get_training_history()
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM tbl_training")
+    history = cursor.fetchall()
+    cursor.close()
+    return render_template('training-prediksi.html', tbl_datatraining = history)
+
+@app.route('/prediction_history')
+def prediction_history():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    #prediction_history = get_prediction_history()
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM tbl_prediksi")
+    history = cursor.fetchall()
+    cursor.close()
+    return render_template('history-prediksi.html', tbl_dataprediksi=history)
+
+#def create_hashed_password(password):
+#    return bcrypt.generate_password_hash(password).decode('utf-8')
+
+@app.route('/insert', methods=['POST'])
+def insert():
+    if request.method == "POST":
+        flash("Register Berhasil")
+        nama = request.form['nama']
+        email = request.form['email']
+        username = request.form['username']
+        password = request.form['password']
+        level = request.form['role']
     
-
-@app.route('/history')
-def history(): 
-    if 'nama' in session:
+        #hashed_password = create_hashed_password(password)
+        
         cur = mysql.connection.cursor()
-        cur.execute ("SELECT * From tbl_prediksi")
-        data =cur.fetchall()
-        cur.close()
-        return render_template('history-prediksi.html', nama=session['nama'], tbl_datatesting = data)
-    else:
-        return render_template('login.html')
-
-@app.route('/deletedataprediksi/<string:id_data>', methods = ['POST','DELETE'])
-def delatedataprediksi(id_data):
-    if (request.form['_method'] == 'DELETE'):
-        flash("Delete Data Testing Berhasil")
-        cur = mysql.connection.cursor()
-        cur.execute("DELETE FROM tbl_prediksi WHERE id_prediksi = %s", (id_data,))
+        cur.execute("INSERT INTO tbl_user (nama, email, username, password, role) VALUES (%s, %s, %s, %s, %s)", (nama, email, username, password, level))
         mysql.connection.commit()
         cur.close()
-        return redirect (url_for('history'))
+        return redirect(url_for('user'))
+    
+@app.route('/delete/<string:id_data>', methods = ['POST','DELETE'])
+def delateuser(id_data):
+    if (request.form['_method'] == 'DELETE'):
+        flash("Delete Data Berhasil")
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM tbl_user WHERE id_user = %s", (id_data,))
+        mysql.connection.commit()
+        cur.close()
+        return redirect (url_for('user'))
+
+@app.route('/user/reset/<user_id>', methods=['POST', 'PUT'])
+def putUserReset(user_id):
+    password = request.form['password']
+    password2 = request.form['password2']
+    
+    if password == password2:
+        #hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        hashed_password = password2
+        flash("Change Password Berhasil")
+        cur = mysql.connection.cursor()
+        cur.execute("""UPDATE tbl_user SET password = %s WHERE id_user = %s""", (hashed_password, user_id)) 
+        mysql.connection.commit()
+        cur.close()
+        return redirect(url_for('user'))
+    else:
+        flash("Password tidak cocok")
+        return redirect(url_for('user'))
 
 @app.route ('/user')
 def user ():
@@ -360,7 +416,7 @@ def user ():
         cur.execute ("SELECT * From tbl_user")
         data =cur.fetchall()
         cur.close()
-        return render_template('user.html', tbl_users = data, nama=session['nama'] )
+        return render_template('user.html', tbl_user = data, nama=session['nama'] )
     else:
         return render_template('login.html')
 
@@ -368,17 +424,5 @@ def user ():
 def report():
     return render_template('report.html')
 
-@app.route('/logout')
-def logout():
-    if 'nama' in session:
-        session.pop('nama', None)
-    return redirect('/login')
-
-@app.route('/tes')
-def tes():
-    return render_template('tes.html')
-
-
 if __name__ == '__main__':
     app.run(debug=True)
-
