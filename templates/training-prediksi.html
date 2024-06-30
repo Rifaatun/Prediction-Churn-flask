@@ -21,7 +21,7 @@
         <small class="text-muted float-end">Default label</small>
       </div>
       <div class="card-body">
-        <form method="POST" action="/datatraining" enctype="multipart/form-data">
+        <form method="POST" action="/train" enctype="multipart/form-data"> <!--/datatraining-->
           <div class="row mb-3">
             <div class="col-sm-12">
               <div class="input-group">
@@ -93,19 +93,19 @@
                             </tr>
                           </thead>
                           <tbody>
-                            {% for row in tbl_training %}
+                            {% for row in training_history %}
                             <tr>
                               <td>{{loop.index}}</td>
-                              <td>{{row.1}}</td>
-                              <td>{{ convertPA(row.2) }}</td>
-                              <td>{{ convertPA1(row.3) }}</td>
-                              <td>{{ convertSA(row.4) }}</td>
-                              <td>{{ convertPI(row.5) }}</td>
-                              <td>{{ convertPI1(row.6) }}</td>
-                              <td>{{ convertSI(row.7) }}</td>
-                              <td>{{ convertSI(row.8) }}</td>
-                              <td>{{ convertSI(row.9) }}</td>
-                              <td>{{ convertSI(row.10) }}</td>
+                              <td>{{ row.nama }}</td>
+                              <td>{{ row.Service_types }}</td>
+                              <td>{{ row.Packet_service }}</td>
+                              <td>{{ row.Media_transmisi }}</td>
+                              <td>{{ row.Bandwidth }}</td>
+                              <td>{{ row.State }}</td>
+                              <td>{{ row.Partner }}</td>
+                              <td>{{ row.Type_Contract }}</td>
+                              <td>{{ row.Complaint }}</td>
+                              <td>{{ row.Churn }}</td>
                               <td>
                                 <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalHapus{{ loop.index }}">
                                   <i class="bi bi-trash"></i> </button>

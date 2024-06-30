@@ -46,15 +46,15 @@
                               <th>Partner</th>
                               <th>Contract</th>
                               <th>Complaint</th>
-                              <th>Churn</th>
+                              <th>Prediction</th>
                               <th>Action</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {% for row in tbl_prediksi %}
+                            {% for row in prediction_history %}
                             <tr>
-                              <td>{{loop.index}}</td>
-                              <td>{{row.1}}</td>
+                              <!--<td>{{loop.index}}</td>
+                              <td>{{row.}}</td>
                               <td>{{ convertPA(row.2) }}</td>
                               <td>{{ convertPA1(row.3) }}</td>
                               <td>{{ convertSA(row.4) }}</td>
@@ -63,7 +63,18 @@
                               <td>{{ convertSI(row.7) }}</td>
                               <td>{{ convertSI(row.8) }}</td>
                               <td>{{ convertSI(row.9) }}</td>
-                              <td>{{ convertSI(row.10) }}</td>
+                              <td>{{ convertSI(row.10) }}</td> -->
+                              <td>{{loop.index}}</td>
+                              <td>{{row.nama}}</td>
+                              <td>{{row.Service_types}}</td>
+                              <td>{{ row.Packet_service }}</td>
+                              <td>{{ row.Media_transmisi }}</td>
+                              <td>{{ row.Bandwidth }}</td>
+                              <td>{{ row.State }}</td>
+                              <td>{{ row.Partner }}</td>
+                              <td>{{ row.Type_ontract }}</td>
+                              <td>{{ row.Complaint }}</td>
+                              <td>{{ row.Prediction }}</td>
                               <td>
                                 <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalHapus{{ loop.index }}">
                                   <i class="bi bi-trash"></i> </button>
