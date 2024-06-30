@@ -1,0 +1,118 @@
+@app.route('/train', methods=['GET', 'POST'])
+def train():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    user_role = get_user_role(session['username'])
+    if user_role != 'admin':
+        flash('Akses tidak sah: Hanya admin yang dapat mengakses halaman ini.')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        try:
+            file = request.files['file']
+            
+            if file.filename == '':
+                flash('Tidak ada file yang dipilih untuk diunggah.')
+                return redirect(request.url)
+            
+            if file:
+                # Coba membaca file dengan encoding utf-8, jika gagal coba dengan encoding lain
+                try:
+                    data = pd.read_csv(file)
+                except UnicodeDecodeError:
+                    try:
+                        data = pd.read_csv(file, encoding='latin1')
+                    except Exception as e:
+                        flash(f'Terjadi kesalahan saat membaca file: {str(e)}')
+                        return redirect(url_for('train'))
+                
+                # Periksa apakah file kosong
+                if data.empty:
+                    flash('File kosong. Harap unggah file dengan data yang valid.')
+                    return redirect(url_for('train'))
+                
+                # Periksa apakah file memiliki header yang diharapkan
+                expected_columns = ['Nama', 'Service_type', 'Packet_service', 'Media_transmisi', 'Bandwidth', 'State', 'Partner', 'Contract', 'Complaint', 'Churn']
+                if not all(column in data.columns for column in expected_columns):
+                    flash('Kolom dalam file tidak sesuai dengan yang diharapkan.')
+                    return redirect(url_for('train'))
+                
+                # Simpan data training ke database
+                cursor = mysql.connection.cursor()
+                for index, row in data.iterrows():
+                    cursor.execute("""
+                        INSERT INTO tbl_training 
+                        (Nama, Service_type, Packet_service, Media_transmisi, Bandwidth, State, Partner, Type_contract, Complaint, Churn) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (row['Nama'], row['Service_type'], row['Packet_service'], row['Media_transmisi'], row['Bandwidth'], row['State'], row['Partner'], row['Type_contract'], row['Complaint'], row['Churn']))
+                mysql.connection.commit()
+                cursor.close()
+                
+                # Latih model
+                train_model(data)
+                
+                flash('Data training berhasil diunggah dan model dilatih.')
+                return redirect(url_for('train'))
+        
+        except Exception as e:
+            flash(f'Terjadi kesalahan: {str(e)}')
+            return redirect(url_for('train'))
+    
+    return render_template('training-prediksi.html')
+
+
+
+
+
+def train awal
+
+@app.route('/train', methods=['GET', 'POST'])
+def train():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    user_role = get_user_role(session['username'])
+    if user_role != 'admin':
+        flash('Akses tidak sah: Hanya admin yang dapat mengakses halaman ini.')
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        try:
+            file = request.files['file']
+            
+            if file.filename == '':
+                flash('Tidak ada file yang dipilih untuk diunggah.')
+                return redirect(url_for('train'))
+            
+            # Periksa apakah file yang diunggah memiliki ekstensi yang diizinkan
+            if file and allowed_file(file.filename):
+                col_name = ['Nama', 'Service_type', 'Packet_service', 'Media_transmisi', 'Bandwidth', 'State', 'Partner', 'Type_contract', 'Complaint', 'Churn']
+                data = pd.read_csv(file, names=col_name, header=0, sep=',', skipinitialspace=True)
+                
+                # Cek dan mengganti nilai nan dengan None
+                data.replace({np.nan: None}, inplace=True)
+                
+                # Simpan data training ke database
+                cursor = mysql.connection.cursor()
+                for index, row in data.iterrows():
+                    cursor.execute("""
+                        INSERT INTO tbl_training 
+                        (Nama, Service_type, Packet_service, Media_transmisi, Bandwidth, State, Partner, Type_contract, Complaint, Churn) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (row['Nama'], row['Service_type'], row['Packet_service'], row['Media_transmisi'], row['Bandwidth'], row['State'], row['Partner'], row['Type_contract'], row['Complaint'], row['Churn']))
+                mysql.connection.commit()
+                cursor.close()
+                
+                # Latih model
+                train_model(data)
+                
+                flash('Data training berhasil diunggah dan model dilatih.')
+                return redirect(url_for('train'))
+        
+        except Exception as e:
+            flash(f'Terjadi kesalahan: {str(e)}')
+            return redirect(url_for('train'))
+
+    return render_template('training-prediksi.html')
+
