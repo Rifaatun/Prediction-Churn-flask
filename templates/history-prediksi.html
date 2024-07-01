@@ -51,21 +51,10 @@
                             </tr>
                           </thead>
                           <tbody>
-                            {% for row in prediction_history %}
+                            {% for row in tbl_dataprediksi %}
                             <tr>
-                              <!--<td>{{loop.index}}</td>
-                              <td>{{row.}}</td>
-                              <td>{{ convertPA(row.2) }}</td>
-                              <td>{{ convertPA1(row.3) }}</td>
-                              <td>{{ convertSA(row.4) }}</td>
-                              <td>{{ convertPI(row.5) }}</td>
-                              <td>{{ convertPI1(row.6) }}</td>
-                              <td>{{ convertSI(row.7) }}</td>
-                              <td>{{ convertSI(row.8) }}</td>
-                              <td>{{ convertSI(row.9) }}</td>
-                              <td>{{ convertSI(row.10) }}</td> -->
                               <td>{{loop.index}}</td>
-                              <td>{{row.nama}}</td>
+                              <td>{{row.Nama}}</td>
                               <td>{{row.Service_types}}</td>
                               <td>{{ row.Packet_service }}</td>
                               <td>{{ row.Media_transmisi }}</td>

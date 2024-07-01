@@ -132,22 +132,6 @@ def get_user_role(username):
     cursor.close()
     return role
 
-# Fungsi untuk mendapatkan history training
-def get_training_history():
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM tbl_training")
-    history = cursor.fetchall()
-    cursor.close()
-    return history
-
-# Fungsi untuk mendapatkan history prediksi
-def get_prediction_history():
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM tbl_prediksi")
-    history = cursor.fetchall()
-    cursor.close()
-    return history
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -167,9 +151,11 @@ def dashboard():
             uji = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
             cur.execute('SELECT COUNT(*) FROM tbl_training')
             latih = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
+            cur.execute('SELECT nama FROM tbl_user')
+            nama = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
             cur.close()
             
-            return render_template('dashboard.html', username=session['username'], datatesting=uji, datatraining=latih)
+            return render_template('dashboard.html', username=session['username'], datatesting=uji[0], datatraining=latih[0], nama=nama)
         
         except Exception as e:
             return render_template('dashboard.html', username=session['username'])
@@ -297,7 +283,6 @@ def predict():
         try:
             # Ambil input dari form
             input_data = {
-                'Nama': request.form['Nama'],
                 'Service_types': request.form['Service_types'],
                 'Packet_service': request.form['Packet_service'],
                 'Media_transmisi': request.form['Media_transmisi'],
@@ -307,9 +292,9 @@ def predict():
                 'Type_contract': request.form['Type_contract'],
                 'Complaint': request.form['Complaint']
             }
-
-            input_data = pd.DataFrame([input_data])
-
+            flash(f'{input_data}')
+            # input_data = pd.DataFrame([input_data])
+            flash(f'{input_data}')
             # Prediksi menggunakan fungsi predict_model
             result = predict_model(input_data)
 
@@ -341,7 +326,6 @@ def training_history():
         flash('Akses tidak sah: Hanya admin yang dapat mengakses halaman ini.')
         return redirect(url_for('dashboard'))
 
-    #training_history = get_training_history()
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM tbl_training")
     history = cursor.fetchall()
@@ -353,7 +337,6 @@ def prediction_history():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    #prediction_history = get_prediction_history()
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM tbl_prediksi")
     history = cursor.fetchall()
@@ -411,12 +394,12 @@ def putUserReset(user_id):
 
 @app.route ('/user')
 def user ():
-    if 'nama' in session:
+    if 'username' in session:
         cur = mysql.connection.cursor()
         cur.execute ("SELECT * From tbl_user")
         data =cur.fetchall()
         cur.close()
-        return render_template('user.html', tbl_user = data, nama=session['nama'] )
+        return render_template('user.html', tbl_user = data, username=session['username'] )
     else:
         return render_template('login.html')
 

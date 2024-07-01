@@ -17,11 +17,12 @@
   <div class="col-xxl">
     <div class="card mb-4">
       <div class="card-header d-flex align-items-center justify-content-between">
-        <h5 class="mb-0">Tambah User</h5><br>
-        <button type="submit" class="btn btn-primary" data-bs-toggle="modal"
-        data-bs-target="#tambahModal">
-         + tambah User
-        </button>
+        <h5 class="mb-0">Tambah User</h5>
+        <div>
+            <button type="submit" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahModal">
+                + tambah User
+            </button>
+        </div>
       </div>
 
       <!-- Modal form tambah -->
@@ -66,9 +67,9 @@
                   </div>
                   <div class="row mb-3">
                       <div class="col-sm-12">
-                          <label for="level" class="form-label">Level</label>
-                          <input required type="text" name="level" class="form-control" id="level"
-                              placeholder="Masukkan Level">
+                          <label for="level" class="form-label">Role</label>
+                          <input required type="text" name="role" class="form-control" id="role"
+                              placeholder="Masukkan role">
                       </div>
                   </div>
                   <div class="row mb-3">
@@ -129,18 +130,18 @@
                             <th scope="col">Nama</th>
                             <th scope="col">Username</th>
                             <th scope="col">Email</th>
-                            <th scope="col">Level</th>
+                            <th scope="col">Role</th>
                             <th scope="col">Action</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {% for row in tbl_users %}
+                            {% for row in tbl_user %}
                             <tr>
                                 <td>{{loop.index}}</td>
-                                <td>{{row.1}}</td>
-                                <td>{{row.2}}</td>
-                                <td>{{row.3}}</td>
-                                <td>{{row.4}}</td>
+                                <td>{{row.nama}}</td>
+                                <td>{{row.username}}</td>
+                                <td>{{row.email}}</td>
+                                <td>{{row.role}}</td>
                                 <td>
                                     <button type="button" class="btn btn-dark" data-bs-toggle="modal"
                                         data-bs-target="#modalResetPassword{{ loop.index }}">
