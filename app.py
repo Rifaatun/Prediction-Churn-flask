@@ -148,11 +148,11 @@ def dashboard():
         try:
             cur = mysql.connection.cursor()
             cur.execute('SELECT COUNT(*) FROM tbl_testing')
-            uji = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
+            uji = cur.fetchone()  # Mengambil nilai COUNT(*)
             cur.execute('SELECT COUNT(*) FROM tbl_training')
-            latih = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
+            latih = cur.fetchone()  # Mengambil nilai COUNT(*)
             cur.execute('SELECT nama FROM tbl_user')
-            nama = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
+            nama = cur.fetchone()  # Mengambil nilai COUNT(*)
             cur.close()
             
             return render_template('dashboard.html', username=session['username'], datatesting=uji[0], datatraining=latih[0], nama=nama)
@@ -354,7 +354,7 @@ def insert():
         email = request.form['email']
         username = request.form['username']
         password = request.form['password']
-        level = request.form['role']
+        role = request.form['role']
     
         #hashed_password = create_hashed_password(password)
         
@@ -405,6 +405,9 @@ def user ():
 
 @app.route('/report')
 def report():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
     return render_template('report.html')
 
 if __name__ == '__main__':

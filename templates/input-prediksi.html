@@ -158,10 +158,14 @@
           <div
             class="card-header d-flex align-items-center justify-content-between">
             <h5 class="mb-0">Hasil Prediksi Churn Adalah </h5>
-            {% if result %}
-            <h5 class="mb-0">{{ result }}</h5>
-            {% endif %}
           </div>
+          <div class="card-body">
+            {% if result %}
+            <div class="alert alert-info mb-3" role="alert">
+              <strong>Hasil Prediksi:</strong> {{ result }}
+            </div>
+            {% endif %}
+          </div>  
         </div>
       </div>
     </div>

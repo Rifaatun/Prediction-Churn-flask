@@ -138,10 +138,10 @@
                             {% for row in tbl_user %}
                             <tr>
                                 <td>{{loop.index}}</td>
-                                <td>{{row.nama}}</td>
-                                <td>{{row.username}}</td>
-                                <td>{{row.email}}</td>
-                                <td>{{row.role}}</td>
+                                <td>{{ row['nama'] }}</td>
+                                <td>{{ row['username'] }}</td>
+                                <td>{{ row['email'] }}</td>
+                                <td>{{ row['role'] }}</td>
                                 <td>
                                     <button type="button" class="btn btn-dark" data-bs-toggle="modal"
                                         data-bs-target="#modalResetPassword{{ loop.index }}">
@@ -232,8 +232,8 @@
                </div>
            </div>
            <!-- end modal hapus -->
-               {% endfor %}
-                          </tbody>
+                         {% endfor %}
+                        </tbody>
                         </table>
                         </div>
                         <!-- End Table with stripped rows -->
