@@ -16,39 +16,58 @@
               class="d-flex flex-sm-column flex-row align-items-start justify-content-between"
             >
               <div class="card-title">
-                <h5 class="text-nowrap mb-2">Data Training</h5>
+                <h5 class="text-nowrap mb-2">Prediction Result</h5>
               </div>
               <div class="mt-sm-auto">
-                
-                <h3 class="mb-0">{{datatraining}}</h3>
+                <h3 class="mb-0">Total Churn: {{ total_churn }}</h3>
+                <h3 class="mb-0">Total No Churn: {{ total_no_churn }}</h3>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-4">
+
+    <div class="col-md-6 col-lg-4 order-1 mb-4">
       <div class="card h-100">
         <div class="card-body">
           <div
-            class="d-flex justify-content-between flex-sm-row flex-column gap-3"
-          >
+              class="d-flex flex-sm-column flex-row align-items-start justify-content-between"
+            >
+              <div class="card-title">
+                <h5 class="text-nowrap mb-2">Churn by Service Types</h5>
+              </div>
+              <div class="mt-sm-auto">
+                <img src="data:image/png;base64,{{ churn_by_service_type }}" alt="Churn by Service Types">
+              </div>
+            </div>
+        </div>
+        <div class="card-body">
             <div
               class="d-flex flex-sm-column flex-row align-items-start justify-content-between"
             >
               <div class="card-title">
-                <h5 class="text-nowrap mb-2">Data Prediksi</h5>
+                <h5 class="text-nowrap mb-2">Churn by Packet Service</h5>
               </div>
               <div class="mt-sm-auto">
-                <h3 class="mb-0">{{datatesting}}</h3>
+                <img src="data:image/png;base64,{{ churn_by_packet_service }}" alt="Churn by Packet Service">
               </div>
             </div>
-          </div>
+            <div
+              class="d-flex flex-sm-column flex-row align-items-start justify-content-between"
+            >
+              <div class="card-title">
+                <h5 class="text-nowrap mb-2">Churn by Media Transmisi</h5>
+              </div>
+              <div class="mt-sm-auto">
+                <img src="data:image/png;base64,{{ churn_by_media_transmisi }}" alt="Churn by Media Transmisi ">
+              </div>
+            </div>
         </div>
       </div>
     </div>
+   </div>
   </div>
-    </div>
   <!-- / Content -->
 
   {% endblock %}

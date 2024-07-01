@@ -5,8 +5,12 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Bidirectional, LSTM, Dense
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import pickle
+import seaborn as sns
 from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
@@ -292,9 +296,9 @@ def predict():
                 'Type_contract': request.form['Type_contract'],
                 'Complaint': request.form['Complaint']
             }
-            flash(f'{input_data}')
+            #flash(f'{input_data}')
             # input_data = pd.DataFrame([input_data])
-            flash(f'{input_data}')
+            #flash(f'{input_data}')
             # Prediksi menggunakan fungsi predict_model
             result = predict_model(input_data)
 
@@ -403,12 +407,57 @@ def user ():
     else:
         return render_template('login.html')
 
+def plot_churn_by_variable(df, variable):
+    plt.figure(figsize=(10, 6))
+    sns.countplot(data=df, x=variable, hue='Churn')
+    plt.title(f'Churn by {variable}')
+    
+    # Convert plot to PNG image
+    buf = BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    plt.close()
+    
+    return img_base64
+
 @app.route('/report')
 def report():
     if 'username' not in session:
         return redirect(url_for('login'))
     
-    return render_template('report.html')
+    try:
+        # Mendapatkan data dari database
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT * FROM tbl_training")
+        training_data = cursor.fetchall()
+        training_df = pd.DataFrame(training_data, columns=['id', 'Nama', 'Service_types', 'Packet_service', 'Media_transmisi', 'Bandwidth', 'State', 'Partner', 'Type_contract', 'Complaint', 'Churn'])
+        
+        cursor.execute("SELECT * FROM tbl_prediksi")
+        prediction_data = cursor.fetchall()
+        prediction_df = pd.DataFrame(prediction_data, columns=['id', 'Nama', 'Service_types', 'Packet_service', 'Media_transmisi', 'Bandwidth', 'State', 'Partner', 'Type_contract', 'Complaint', 'Prediction'])
+        
+        cursor.close()
+        
+        # Plot churn by variables
+        churn_by_service_type = plot_churn_by_variable(training_df, 'Service_types')
+        churn_by_packet_service = plot_churn_by_variable(training_df, 'Packet_service')
+        churn_by_media_transmisi = plot_churn_by_variable(training_df, 'Media_transmisi')
+        
+        # Hitung jumlah churn dan non-churn dari data prediksi
+        total_churn = prediction_df[prediction_df['Prediction'] == 'Churn'].shape[0]
+        total_no_churn = prediction_df[prediction_df['Prediction'] == 'Not Churn'].shape[0]
+        
+        return render_template('report.html', 
+                               churn_by_service_type=churn_by_service_type,
+                               churn_by_packet_service=churn_by_packet_service,
+                               churn_by_media_transmisi=churn_by_media_transmisi,
+                               total_churn=total_churn,
+                               total_no_churn=total_no_churn)
+        
+    except Exception as e:
+        flash(f'Terjadi kesalahan: {str(e)}')
+        return redirect(url_for('report.html'))
 
 if __name__ == '__main__':
     app.run(debug=True)
