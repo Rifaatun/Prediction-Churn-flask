@@ -36,7 +36,7 @@
           <div class="modal-body">
 
               <!-- Isi formulir tambah di sini -->
-              <form action="{{url_for('insert')}}" method="POST">
+              <form action="{{url_for('user)}}" method="POST">
                   <div class="row mb-3">
                       <div class="col-sm-12">
                           <label for="namaLengkap" class="form-label">Nama Lengkap</label>
@@ -138,10 +138,10 @@
                             {% for row in tbl_user %}
                             <tr>
                                 <td>{{loop.index}}</td>
-                                <td>{{ row['nama'] }}</td>
-                                <td>{{ row['username'] }}</td>
-                                <td>{{ row['email'] }}</td>
-                                <td>{{ row['role'] }}</td>
+                                <td>{{ row.1 }}</td>
+                                <td>{{ row.2 }}</td>
+                                <td>{{ row.3 }}</td>
+                                <td>{{ row.5 }}</td>
                                 <td>
                                     <button type="button" class="btn btn-dark" data-bs-toggle="modal"
                                         data-bs-target="#modalResetPassword{{ loop.index }}">

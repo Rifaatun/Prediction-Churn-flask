@@ -72,6 +72,7 @@
                     <div class="card">
                       <div class="card-body">
                         <h5 class="card-title">Data Training</h5>
+                        {{ data }}
                         <!-- Table with stripped rows -->
                         <div class="table-responsive">
                         <table id="myTable" class="table responsive nowrap table-bordered table-striped align-middle"
@@ -96,16 +97,16 @@
                             {% for row in tbl_datatraining %}
                             <tr>
                               <td>{{loop.index}}</td>
-                              <td>{{ row.Nama }}</td>
-                              <td>{{ row.Service_types }}</td>
-                              <td>{{ row.Packet_service }}</td>
-                              <td>{{ row.Media_transmisi }}</td>
-                              <td>{{ row.Bandwidth }}</td>
-                              <td>{{ row.State }}</td>
-                              <td>{{ row.Partner }}</td>
-                              <td>{{ row.Type_Contract }}</td>
-                              <td>{{ row.Complaint }}</td>
-                              <td>{{ row.Churn }}</td>
+                              <td>{{ row.1}}</td>
+                              <td>{{ row.2}}</td>
+                              <td>{{ row.3 }}</td>
+                              <td>{{ row.4 }}</td>
+                              <td>{{ row.5 }}</td>
+                              <td>{{ row.6 }}</td>
+                              <td>{{ row.7 }}</td>
+                              <td>{{ row.8 }}</td>
+                              <td>{{ row.9 }}</td>
+                              <td>{{ row.10 }}</td>
                               <td>
                                 <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalHapus{{ loop.index }}">
                                   <i class="bi bi-trash"></i> </button>
@@ -140,8 +141,10 @@
                           </tbody>
                         </table>
                         </div>
-                        <!-- End Table with stripped rows -->
-                        
+                        <!-- End Table with stripped rows --> 
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
