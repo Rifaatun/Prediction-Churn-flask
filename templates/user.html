@@ -7,7 +7,7 @@
             <!-- Content -->
 
             <div class="container-xxl flex-grow-1 container-p-y">
-              <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Training/</span> Tes Training</h4>
+              <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">User/</span> Add User</h4>
 
 <!-- tambah data user-->
 
@@ -36,7 +36,7 @@
           <div class="modal-body">
 
               <!-- Isi formulir tambah di sini -->
-              <form action="{{url_for('user)}}" method="POST">
+              <form  method="POST" action="/user">
                   <div class="row mb-3">
                       <div class="col-sm-12">
                           <label for="namaLengkap" class="form-label">Nama Lengkap</label>
@@ -145,11 +145,11 @@
                                 <td>
                                     <button type="button" class="btn btn-dark" data-bs-toggle="modal"
                                         data-bs-target="#modalResetPassword{{ loop.index }}">
-                                        <i class="bi bi-unlock"></i>
+                                        <ion-icon name="refresh-outline"></ion-icon>
                                     </button>
                                     <button class="btn btn-danger" data-bs-toggle="modal"
                                         data-bs-target="#modalHapus{{ loop.index }}">
-                                        <i class="bi bi-trash"></i>
+                                        <ion-icon name="trash-outline"></ion-icon>
                                     </button>
                                 </td>
                                </tr> 

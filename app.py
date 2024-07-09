@@ -327,22 +327,6 @@ def predict():
 
     return render_template('input-prediksi.html', result=result)
 
-@app.route('/training_history', )
-def training_history():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
-    #user_role = get_user_role(session['username'])
-    #if user_role != 'admin':
-    #    flash('Akses tidak sah: Hanya admin yang dapat mengakses halaman ini.')
-    #    return redirect(url_for('dashboard'))
-
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM tbl_training")
-    history = cursor.fetchall()
-    cursor.close()
-    return render_template('training-prediksi.html', tbl_datatraining = history)
-
 @app.route('/prediction_history')
 def prediction_history():
     if 'username' not in session:
@@ -357,6 +341,26 @@ def prediction_history():
 #def create_hashed_password(password):
 #    return bcrypt.generate_password_hash(password).decode('utf-8')
 
+
+# @app.route('/insert', methods=['POST'])
+# def insert():
+#     if request.method == "POST":
+#         flash("Register Berhasil")
+#         nama = request.form['nama']
+#         email = request.form['email']
+#         username = request.form['username']
+#         password = request.form['password']
+#         role = request.form['role']
+    
+#         #hashed_password = create_hashed_password(password)
+        
+#         cur = mysql.connection.cursor()
+#         cur.execute("INSERT INTO tbl_user (nama, email, username, password, role) VALUES (%s, %s, %s, %s, %s)", (nama, email, username, password, level))
+#         mysql.connection.commit()
+#         cur.close()
+#         return redirect(url_for('user'))
+    
+    
 # @app.route('/insert', methods=['POST'])
 # def insert():
 #     if request.method == "POST":
@@ -404,37 +408,42 @@ def putUserReset(user_id):
         return redirect(url_for('user'))
 
 @app.route ('/user', methods=['GET', 'POST'])
-def user ():
-    if 'username' in session:
+def user():
+    if 'username' not in session:
         return redirect(url_for('login'))
     
     if request.method == "POST":
-        flash("Register Berhasil")
-        nama = request.form['nama']
-        email = request.form['email']
-        username = request.form['username']
-        password = request.form['password']
-        role = request.form['role']
+        try:
+            flash("Register Berhasil")
+            nama = request.form['nama']
+            email = request.form['email']
+            username = request.form['username']
+            password = request.form['password']
+            role = request.form['role']
     
         #hashed_password = create_hashed_password(password)
         
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO tbl_user (nama, email, username, password, role) VALUES (%s, %s, %s, %s, %s)", (nama, email, username, password, level))
-        mysql.connection.commit()
-        cur.close()
+            cur = mysql.connection.cursor()
+            cur.execute("INSERT INTO tbl_user (nama, email, username, password, role) VALUES (%s, %s, %s, %s, %s)", (nama, email, username, password, role))
+            mysql.connection.commit()
+            cur.close()
+        except Exception as e:
+            flash("Terjadi kesalahan saat mendaftarkan user: " + str(e))
 
     if request.method == 'GET':
-        cursor = mysql.connection.cursor()
-        cursor.execute("SELECT * FROM tbl_training")
-        history = cursor.fetchall()
-        cursor.close()
-        
-        return render_template('user.html', tbl_user = data, username=session['username'] )
-    else:
-        return render_template('login.html')
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute("SELECT * FROM tbl_user")
+            data = cursor.fetchall()
+            cursor.close()
+        except Exception as e :
+            flash("Terjadi kesalahan saat mengambil data user: " + str(e))
+            data = []
+
+    return render_template('user.html', tbl_user=data, username=session['username'])
 
 def plot_churn_by_variable(df, variable):
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(5, 4))
     sns.countplot(data=df, x=variable, hue='Churn')
     plt.title(f'Churn by {variable}')
     
