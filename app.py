@@ -152,14 +152,11 @@ def dashboard():
         try:
             cur = mysql.connection.cursor()
             cur.execute('SELECT COUNT(*) FROM tbl_testing')
-            uji = cur.fetchone()  # Mengambil nilai COUNT(*)
+            uji = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
             cur.execute('SELECT COUNT(*) FROM tbl_training')
-            latih = cur.fetchone()  # Mengambil nilai COUNT(*)
-            cur.execute('SELECT nama FROM tbl_user')
-            nama = cur.fetchone()  # Mengambil nilai COUNT(*)
-            cur.close()
+            latih = cur.fetchone()[0]  # Mengambil nilai COUNT(*)
             
-            return render_template('dashboard.html', username=session['username'], datatesting=uji[0], datatraining=latih[0], nama=nama)
+            return render_template('dashboard.html', username=session['username'], datatesting=uji, datatraining=latih,)
         
         except Exception as e:
             return render_template('dashboard.html', username=session['username'])
@@ -327,6 +324,22 @@ def predict():
 
     return render_template('input-prediksi.html', result=result)
 
+def decode_columns(df, label_encoders):
+    for column in df.columns:
+        if column in label_encoders:
+            print(f"Decoding column: {column}")  # Debug statement
+            try:
+                df[column] = df[column].apply(lambda x: int(str(x).strip('[]')))  # Pastikan tipe data benar
+                unseen_labels = set(df[column].unique()) - set(label_encoders[column].classes_)
+                if unseen_labels:
+                    print(f"Unseen labels in {column}: {unseen_labels}")  # Debug statement
+                    label_encoders[column].classes_ = np.append(label_encoders[column].classes_, list(unseen_labels))
+                df[column] = label_encoders[column].inverse_transform(df[column].astype(int))
+                print(f"Decoded values for {column}: {df[column].unique()}")  # Debug statement
+            except Exception as e:
+                print(f"Error decoding column {column}: {e}")
+    return df
+
 @app.route('/prediction_history')
 def prediction_history():
     if 'username' not in session:
@@ -336,48 +349,25 @@ def prediction_history():
     cursor.execute("SELECT * FROM tbl_prediksi")
     history = cursor.fetchall()
     cursor.close()
+
+    # Pastikan urutan kolom sesuai dengan data dari database
+    history_df = pd.DataFrame(history, columns=['id', 'Nama', 'Service_types', 'Packet_service', 'Media_transmisi', 'Bandwidth', 'State', 'Partner', 'Type_contract', 'Complaint', 'Prediction']).copy()
+
+    # Load the label encoders
+    with open('models/label_encoders.pkl', 'rb') as f:
+        label_encoders = pickle.load(f)
+
+    # Decode the columns except 'Prediction' which will be handled separately
+    columns_to_decode = ['Service_types', 'Packet_service', 'Media_transmisi', 'State', 'Partner', 'Type_contract', 'Complaint']
+    history_df[columns_to_decode] = decode_columns(history_df[columns_to_decode].copy(), label_encoders)
+
+    # Convert Prediction column to human-readable form
+    history_df['Prediction'] = history_df['Prediction'].apply(lambda x: 'Churn' if x == 1 else 'Not Churn')
+
+    history = history_df.to_records(index=False)
+
     return render_template('history-prediksi.html', tbl_dataprediksi=history)
 
-#def create_hashed_password(password):
-#    return bcrypt.generate_password_hash(password).decode('utf-8')
-
-
-# @app.route('/insert', methods=['POST'])
-# def insert():
-#     if request.method == "POST":
-#         flash("Register Berhasil")
-#         nama = request.form['nama']
-#         email = request.form['email']
-#         username = request.form['username']
-#         password = request.form['password']
-#         role = request.form['role']
-    
-#         #hashed_password = create_hashed_password(password)
-        
-#         cur = mysql.connection.cursor()
-#         cur.execute("INSERT INTO tbl_user (nama, email, username, password, role) VALUES (%s, %s, %s, %s, %s)", (nama, email, username, password, level))
-#         mysql.connection.commit()
-#         cur.close()
-#         return redirect(url_for('user'))
-    
-    
-# @app.route('/insert', methods=['POST'])
-# def insert():
-#     if request.method == "POST":
-#         flash("Register Berhasil")
-#         nama = request.form['nama']
-#         email = request.form['email']
-#         username = request.form['username']
-#         password = request.form['password']
-#         role = request.form['role']
-    
-#         #hashed_password = create_hashed_password(password)
-        
-#         cur = mysql.connection.cursor()
-#         cur.execute("INSERT INTO tbl_user (nama, email, username, password, role) VALUES (%s, %s, %s, %s, %s)", (nama, email, username, password, level))
-#         mysql.connection.commit()
-#         cur.close()
-#         return redirect(url_for('user'))
     
 @app.route('/delete/<string:id_data>', methods = ['POST','DELETE'])
 def delateuser(id_data):
@@ -395,7 +385,6 @@ def putUserReset(user_id):
     password2 = request.form['password2']
     
     if password == password2:
-        #hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         hashed_password = password2
         flash("Change Password Berhasil")
         cur = mysql.connection.cursor()
@@ -492,7 +481,7 @@ def report():
         
     except Exception as e:
         flash(f'Terjadi kesalahan: {str(e)}')
-        return redirect(url_for('report.html'))
+        return redirect(url_for('report'))
 
 if __name__ == '__main__':
     app.run(debug=True)
